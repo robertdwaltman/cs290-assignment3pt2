@@ -15,16 +15,50 @@ function getLanguages(){
 }
 
 function createURL(){
-	var req = new XMLHttpRequest();
-	var reqString = 'https://api.github.com/gists/public';
+	var reqString = 'https://api.github.com/gists';
 	reqString += "?page=" + getNumberOfPages();
 	console.log(reqString);
-	req.open('GET', reqString);
-	req.send();
+	return reqString;
+
 }
 
+
+
 function generateOutput(){
-	createURL();
+	var reqString = createURL();
+	var req = new XMLHttpRequest();
+	var selectedLanguages = getLanguages();
+	req.open('GET', reqString);
+	req.send();
+	req.onreadystatechange=parseOutput;
+
+	function parseOutput(){
+		if(req.readyState === 4){
+			if(req.status === 200){
+				console.log(req.responseText);
+				var parsedReturn = JSON.parse(req.responseText);
+				
+				var outputArray = [];
+				var i;
+				var tempStorage;
+				for(i = 0; i < parsedReturn.length; i++){
+					tempStorage = parsedReturn[i];
+					for(var parentFieldName in tempStorage.files){
+						var fileObject = tempStorage.files[parentFieldName];
+						for(var childFieldName in fileObject){
+							if(childFieldName == "language"){
+								if(selectedLanguages.indexOf(fileObject[childFieldName]) > -1){
+									outputArray.push(tempStorage.description);
+									outputArray.push(fileObject[childFieldName]);
+								}
+							}
+						}
+					}
+				}
+				console.log(outputArray);
+			}
+		}
+	}
 }
 
 /*
