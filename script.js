@@ -14,20 +14,13 @@ function getLanguages(){
 	return returnArray;
 }
 
-function createURL(){
-	var reqString = 'https://api.github.com/gists';
-	reqString += "?page=" + getNumberOfPages();
-	console.log(reqString);
-	return reqString;
-
-}
-
-
-
-function generateOutput(){
-	var reqString = createURL();
+function generateOutput(pageNum){
 	var req = new XMLHttpRequest();
 	var selectedLanguages = getLanguages();
+	var reqString;
+	var outputArray = [];
+	
+	reqString = "https://api.github.com/gists?page=" + pageNum;
 	req.open('GET', reqString);
 	req.send();
 	req.onreadystatechange=parseOutput;
@@ -35,10 +28,9 @@ function generateOutput(){
 	function parseOutput(){
 		if(req.readyState === 4){
 			if(req.status === 200){
-				console.log(req.responseText);
+		
 				var parsedReturn = JSON.parse(req.responseText);
-				
-				var outputArray = [];
+
 				var i;
 				var tempStorage;
 				for(i = 0; i < parsedReturn.length; i++){
@@ -47,18 +39,56 @@ function generateOutput(){
 						var fileObject = tempStorage.files[parentFieldName];
 						for(var childFieldName in fileObject){
 							if(childFieldName == "language"){
-								if(selectedLanguages.indexOf(fileObject[childFieldName]) > -1){
-									outputArray.push(tempStorage.description);
-									outputArray.push(fileObject[childFieldName]);
+								if(selectedLanguages.length > 0){
+									if(selectedLanguages.indexOf(fileObject[childFieldName]) > -1){
+										outputArray.push({
+											description: tempStorage.description,
+											language: fileObject[childFieldName],
+											id: tempStorage.id,
+											URL: tempStorage.html_url
+										});
+									}
+								}
+								else{
+									outputArray.push({
+										description: tempStorage.description,
+										language: fileObject[childFieldName],
+										id: tempStorage.id,
+										URL: tempStorage.html_url
+									});
 								}
 							}
 						}
 					}
 				}
-				console.log(outputArray);
+				formatOutput(outputArray);
 			}
 		}
+		
 	}
+}
+
+function mainDisplay(){
+	document.getElementById("gistDisplay").innerHTML = "";
+	var pageNum = getNumberOfPages();
+	var i;
+	for(i=1; i<=pageNum; i++){
+		generateOutput(i);
+	}
+}
+
+function formatOutput(outputArray){
+	var i;
+	for(i=1; i<outputArray.length; i++){
+		document.getElementById("gistDisplay").innerHTML += "<p>" + "Description: " + outputArray[i].description;
+		document.getElementById("gistDisplay").innerHTML += "<p>" + "Language: " + outputArray[i].language;
+		document.getElementById("gistDisplay").innerHTML += "<p>" + "ID #: " + outputArray[i].id;
+		document.getElementById("gistDisplay").innerHTML += "<p>" + "URL: " + outputArray[i].URL;
+		document.getElementById("gistDisplay").innerHTML += "<br>";
+
+
+	}
+	
 }
 
 /*
