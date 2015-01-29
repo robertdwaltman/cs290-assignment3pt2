@@ -90,7 +90,7 @@ function formatOutput(outputArray){
 	var i;
 	var k;
 	var listMatch;
-	for(i=1; i<outputArray.length; i++){
+	for(i=0; i<outputArray.length; i++){
 		listMatch = false;
 		if(savedFavorites != null){
 			for(k=0; k<savedFavorites.length; k++)
@@ -115,8 +115,14 @@ function formatOutput(outputArray){
 			var descriptionRow = document.createElement("tr");
 			var descriptionData = document.createElement("td");
 			var descriptionText = document.createElement("a");
-			descriptionText.href = outputArray[i].webAddress;
-			descriptionText.innerHTML = outputArray[i].description;
+			if(outputArray[i].description != null && outputArray[i].description != ""){
+				descriptionText.href = outputArray[i].webAddress;
+				descriptionText.innerHTML = outputArray[i].description;
+			}
+			else{
+				descriptionText.href = outputArray[i].webAddress;
+				descriptionText.innerHTML = "(No Description)";
+			}
 			descriptionData.appendChild(descriptionText);
 			descriptionRow.appendChild(descriptionData);
 			resultTable.appendChild(descriptionRow);
@@ -204,8 +210,14 @@ function populateFavorites(){
 			var descriptionRow = document.createElement("tr");
 			var descriptionData = document.createElement("td");
 			var descriptionText = document.createElement("a");
-			descriptionText.href = savedFavorites[i].webAddress;
-			descriptionText.innerHTML = savedFavorites[i].description;
+			if(savedFavorites[i].description != null && savedFavorites[i].description != ""){
+				descriptionText.href = savedFavorites[i].webAddress;
+				descriptionText.innerHTML = savedFavorites[i].description;
+			}
+			else{
+				descriptionText.href = savedFavorites[i].webAddress;
+				descriptionText.innerHTML = "(No Description)";
+			}
 			descriptionData.appendChild(descriptionText);
 			descriptionRow.appendChild(descriptionData);
 			resultTable.appendChild(descriptionRow);
