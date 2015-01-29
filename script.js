@@ -1,3 +1,7 @@
+window.onload = function(){
+	populateFavorites();
+}
+
 function getNumberOfPages(){
 	return document.getElementById("pageNumSelect").value;	
 }
@@ -75,13 +79,7 @@ function mainDisplay(){
 	document.getElementById("gistDisplay").innerHTML = "";
 	var pageNum = getNumberOfPages();
 	var i;
-	var favoriteStorageChunk = localStorage.getItem("favorites");
-	if(favoriteStorageChunk === null){
-		savedFavorites = [];
-	}
-	else{
-		savedFavorites = JSON.parse(favoriteStorageChunk);
-	}
+	finalDisplay = [];
 	populateFavorites();
 	for(i=1; i<=pageNum; i++){
 		generateOutput(i);
@@ -165,22 +163,14 @@ function formatOutput(outputArray){
 
 function addFave(buttonID){
 	var i;
-	var duplicateFlag = false;
-	for(i=0; i<savedFavorites.length; i++){
-		if (savedFavorites[i].id == buttonID){
-			duplicateFlag = true;
-		}
-	}
-	if(duplicateFlag != true){
-		for(i=0; i<finalDisplay.length; i++){
-			if(buttonID == finalDisplay[i].id){
-				savedFavorites.push({
-					description: finalDisplay[i].description,
-					language: finalDisplay[i].language,
-					id: finalDisplay[i].id,
-					webAddress: finalDisplay[i].webAddress
-				});
-			}
+	for(i=0; i<finalDisplay.length; i++){
+		if(buttonID == finalDisplay[i].id){
+			savedFavorites.push({
+				description: finalDisplay[i].description,
+				language: finalDisplay[i].language,
+				id: finalDisplay[i].id,
+				webAddress: finalDisplay[i].webAddress
+			});
 		}
 	}
 	localStorage.setItem("favorites", JSON.stringify(savedFavorites));
@@ -202,6 +192,10 @@ function removeFave(buttonID){
 }
 
 function populateFavorites(){
+	var favoriteStorageChunk = localStorage.getItem("favorites");
+	if(favoriteStorageChunk != null){
+		savedFavorites = JSON.parse(favoriteStorageChunk);
+	}
 	document.getElementById("favorites").innerHTML = "";
 	if(savedFavorites != null){
 		var i;
@@ -232,12 +226,7 @@ function populateFavorites(){
 
 			var favoriteRow = document.createElement("tr");
 			var favoriteData = document.createElement("td");
-			var favoriteButton = document.createElement("input");
-			favoriteButton.type = "button";
-			favoriteButton.name = savedFavorites[i].id;
-			favoriteButton.value = "Remove from Favorites";
-			favoriteButton.onclick = function(){removeFave(this.name)};
-			favoriteData.appendChild(favoriteButton);
+			favoriteData.innerHTML = "<input type='button' name='" + savedFavorites[i].id + "' value='Remove from Favorites' onclick='removeFave(this.name)'>";
 			favoriteRow.appendChild(favoriteData);
 			resultTable.appendChild(favoriteRow);
 
