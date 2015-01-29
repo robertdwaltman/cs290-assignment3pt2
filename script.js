@@ -45,7 +45,7 @@ function generateOutput(pageNum){
 											description: tempStorage.description,
 											language: fileObject[childFieldName],
 											id: tempStorage.id,
-											URL: tempStorage.html_url
+											webAddress: tempStorage.html_url
 										});
 									}
 								}
@@ -54,7 +54,7 @@ function generateOutput(pageNum){
 										description: tempStorage.description,
 										language: fileObject[childFieldName],
 										id: tempStorage.id,
-										URL: tempStorage.html_url
+										webAddress: tempStorage.html_url
 									});
 								}
 							}
@@ -68,10 +68,21 @@ function generateOutput(pageNum){
 	}
 }
 
+var finalDisplay = [];
+var savedFavorites = [];
+
 function mainDisplay(){
 	document.getElementById("gistDisplay").innerHTML = "";
 	var pageNum = getNumberOfPages();
 	var i;
+	var favoriteStorageChunk = localStorage.getItem("favorites");
+	if(favoriteStorageChunk === null){
+		savedFavorites = [];
+	}
+	else{
+		savedFavorites = JSON.parse(favoriteStorageChunk);
+	}
+	populateFavorites();
 	for(i=1; i<=pageNum; i++){
 		generateOutput(i);
 	}
@@ -79,16 +90,162 @@ function mainDisplay(){
 
 function formatOutput(outputArray){
 	var i;
+	var k;
+	var listMatch;
 	for(i=1; i<outputArray.length; i++){
-		document.getElementById("gistDisplay").innerHTML += "<p>" + "Description: " + outputArray[i].description;
-		document.getElementById("gistDisplay").innerHTML += "<p>" + "Language: " + outputArray[i].language;
-		document.getElementById("gistDisplay").innerHTML += "<p>" + "ID #: " + outputArray[i].id;
-		document.getElementById("gistDisplay").innerHTML += "<p>" + "URL: " + outputArray[i].URL;
-		document.getElementById("gistDisplay").innerHTML += "<br>";
+		listMatch = false;
+		if(savedFavorites != null){
+			for(k=0; k<savedFavorites.length; k++)
+			{
+				if (savedFavorites[k].id == outputArray[i].id){
+					listMatch = true;
+				}
+
+			}
+		}
+
+		if(listMatch == false){
+			/*
+			document.getElementById("gistDisplay").innerHTML += "<p>" + "Description: " + outputArray[i].description;
+			document.getElementById("gistDisplay").innerHTML += "<p>" + "Language: " + outputArray[i].language;
+			document.getElementById("gistDisplay").innerHTML += "<p>" + "ID #: " + outputArray[i].id;
+			document.getElementById("gistDisplay").innerHTML += "<p>" + "webAddress: " + outputArray[i].webAddress;
+			document.getElementById("gistDisplay").innerHTML += "<input type='button' name='" + outputArray[i].id + "' onclick='addFave()"
+			*/
+
+			var resultTable = document.createElement("table");
+			var descriptionRow = document.createElement("tr");
+			var descriptionData = document.createElement("td");
+			var descriptionText = document.createElement("a");
+			descriptionText.href = outputArray[i].webAddress;
+			descriptionText.innerHTML = outputArray[i].description;
+			descriptionData.appendChild(descriptionText);
+			descriptionRow.appendChild(descriptionData);
+			resultTable.appendChild(descriptionRow);
+
+			var languageRow = document.createElement("tr");
+			var languageData = document.createElement("td");
+			var languageText = document.createTextNode("Language: " + outputArray[i].language);
+			languageData.appendChild(languageText);
+			languageRow.appendChild(languageData);
+			resultTable.appendChild(languageRow);
+
+			var IDRow = document.createElement("tr");
+			var IDData = document.createElement("td");
+			var IDText = document.createTextNode("ID: " + outputArray[i].id);
+			IDData.appendChild(IDText);
+			IDRow.appendChild(IDData);
+			resultTable.appendChild(IDRow);
+
+			var favoriteRow = document.createElement("tr");
+			var favoriteData = document.createElement("td");
+			favoriteData.innerHTML = "<input type='button' name='" + outputArray[i].id + "' value='Add to Favorites' onclick='addFave(this.name)'>";
+			
+			favoriteRow.appendChild(favoriteData);
+			resultTable.appendChild(favoriteRow);
+
+			document.getElementById("gistDisplay").innerHTML += "<p>";
+			document.getElementById("gistDisplay").appendChild(resultTable);
+
+
+
+			finalDisplay.push({
+				description: outputArray[i].description,
+				language: outputArray[i].language,
+				id: outputArray[i].id,
+				webAddress: outputArray[i].webAddress
+			});
+		}
+
 
 
 	}
 	
+}
+
+function addFave(buttonID){
+	var i;
+	var duplicateFlag = false;
+	for(i=0; i<savedFavorites.length; i++){
+		if (savedFavorites[i].id == buttonID){
+			duplicateFlag = true;
+		}
+	}
+	if(duplicateFlag != true){
+		for(i=0; i<finalDisplay.length; i++){
+			if(buttonID == finalDisplay[i].id){
+				savedFavorites.push({
+					description: finalDisplay[i].description,
+					language: finalDisplay[i].language,
+					id: finalDisplay[i].id,
+					webAddress: finalDisplay[i].webAddress
+				});
+			}
+		}
+	}
+	localStorage.setItem("favorites", JSON.stringify(savedFavorites));
+	mainDisplay();
+}
+
+function removeFave(buttonID){
+	var i;
+	var tempStorage = [];
+	for(i=0; i<savedFavorites.length; i++){
+		if(buttonID != savedFavorites[i].id){
+			tempStorage.push(savedFavorites[i]);
+		}
+	}
+	localStorage.setItem("favorites", JSON.stringify(tempStorage));
+	tempStorage = localStorage.getItem("favorites");
+	savedFavorites = JSON.parse(tempStorage);
+	populateFavorites()
+}
+
+function populateFavorites(){
+	document.getElementById("favorites").innerHTML = "";
+	if(savedFavorites != null){
+		var i;
+		for(i=0; i<savedFavorites.length; i++){
+			var resultTable = document.createElement("table");
+			var descriptionRow = document.createElement("tr");
+			var descriptionData = document.createElement("td");
+			var descriptionText = document.createElement("a");
+			descriptionText.href = savedFavorites[i].webAddress;
+			descriptionText.innerHTML = savedFavorites[i].description;
+			descriptionData.appendChild(descriptionText);
+			descriptionRow.appendChild(descriptionData);
+			resultTable.appendChild(descriptionRow);
+
+			var languageRow = document.createElement("tr");
+			var languageData = document.createElement("td");
+			var languageText = document.createTextNode("Language: " + savedFavorites[i].language);
+			languageData.appendChild(languageText);
+			languageRow.appendChild(languageData);
+			resultTable.appendChild(languageRow);
+
+			var IDRow = document.createElement("tr");
+			var IDData = document.createElement("td");
+			var IDText = document.createTextNode("ID: " + savedFavorites[i].id);
+			IDData.appendChild(IDText);
+			IDRow.appendChild(IDData);
+			resultTable.appendChild(IDRow);
+
+			var favoriteRow = document.createElement("tr");
+			var favoriteData = document.createElement("td");
+			var favoriteButton = document.createElement("input");
+			favoriteButton.type = "button";
+			favoriteButton.name = savedFavorites[i].id;
+			favoriteButton.value = "Remove from Favorites";
+			favoriteButton.onclick = function(){removeFave(this.name)};
+			favoriteData.appendChild(favoriteButton);
+			favoriteRow.appendChild(favoriteData);
+			resultTable.appendChild(favoriteRow);
+
+			document.getElementById("favorites").innerHTML += "<p>";
+			document.getElementById("favorites").appendChild(resultTable);
+
+		}
+	}
 }
 
 /*
